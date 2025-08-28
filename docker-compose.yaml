@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: sawit_pro_db
+    environment:
+      POSTGRES_DB: sawit_pro
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+    ports:
+      - "5432:5432"
+    networks: [ app-network ]
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d sawit_pro" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: sawit_pro_api
+    ports:
+      - "9000:9000"              # atau "8080:9000" kalau mau akses via 8080
+    environment:
+      - APP_ENV=local
+    command: ["/app/app", "-env=local"]
+    restart: unless-stopped
+    networks: [app-network]
+    volumes:
+      - ./env:/app/env:ro
+      - ./api.yaml:/app/api.yaml:ro
+
+networks:
+  app-network:
+    driver: bridge

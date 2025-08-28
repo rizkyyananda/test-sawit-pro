@@ -1,0 +1,10 @@
+server:
+  port: 9000
+database:
+  #//host.docker.internal for docker and localhost for run without  docker
+  host: "host.docker.internal"
+  port: 5432
+  user: "postgres"
+  password: "123456"
+  dbname: "sawit_pro"
+  sslmode: "disable"

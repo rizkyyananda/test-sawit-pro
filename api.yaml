@@ -1,0 +1,238 @@
+openapi: 3.0.3
+info:
+  title: Plantation Management API
+  version: 1.0.0
+servers:
+  - url: http://localhost:9000
+
+paths:
+  /api/estate:
+    post:
+      summary: Create a new estate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEstateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
+        '400':
+          description: Invalid input
+
+  /api/estate/{id}/tree:
+    post:
+      summary: Add tree to estate
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddTreeRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdResponse'
+        '400':
+          description: Invalid input
+        '404':
+          description: Estate not found
+
+  /estate/{id}/stats:
+    get:
+      summary: Get tree stats in estate
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Tree stats
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TreeStatsResponse'
+        '404':
+          description: Estate not found
+
+  /estate/{id}/drone-plan:
+    get:
+      summary: Get drone plan total distance
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Drone plan result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DronePlanResponse'
+        '404':
+          description: Not found
+  /api/estate/max/{id}/drone-plan:
+    get:
+      summary: Get drone plan distance with max_distance support (BONUS)
+      description: >
+        Calculates the total drone travel distance for a specific estate.
+        If `max_distance` is provided and the drone cannot complete its full route,
+        it returns the coordinates (`x`, `y`) where the drone lands with its backup battery.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: UUID of the estate
+        - in: query
+          name: max_distance
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Maximum distance the drone can travel before forced landing
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DronePlanMaxResponse'
+
+components:
+  schemas:
+    CreateEstateRequest:
+      type: object
+      required: [width, length]
+      properties:
+        width:
+          type: integer
+          minimum: 1
+          maximum: 50000
+        length:
+          type: integer
+          minimum: 1
+          maximum: 50000
+
+    AddTreeRequest:
+      type: object
+      required: [x, y, height]
+      properties:
+        x:
+          type: integer
+          minimum: 1
+        y:
+          type: integer
+          minimum: 1
+        height:
+          type: integer
+          minimum: 1
+          maximum: 30
+
+    IdResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        error:
+          type: string
+          nullable: true
+          example: null
+        data:
+          type: string
+          format: uuid
+          example: a6910cf9-326a-44a1-bd02-277b98362156
+        info:
+          type: string
+          nullable: true
+          example: null
+
+    TreeStatsResponse:
+      type: object
+      properties:
+        count:
+          type: integer
+        min:
+          type: integer
+        max:
+          type: integer
+        median:
+          type: integer
+
+    DronePlanResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+        error:
+          type: string
+          nullable: true
+        data:
+          type: integer
+        info:
+          type: string
+          nullable: true
+    DronePlanMaxResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: true
+        error:
+          type: string
+          nullable: true
+          example: null
+        data:
+          type: object
+          properties:
+            x:
+              type: integer
+              example: 85
+            y:
+              type: integer
+              example: 91
+            total:
+              type: integer
+              example: 90001
+        info:
+          type: string
+          nullable: true
+          example: null
+
+    ErrorResponse:
+      type: object
+      properties:
+        status:
+          type: boolean
+          example: false
+        error:
+          type: string
+          example: Invalid max_distance parameter
+        data:
+          nullable: true
+          example: null
+        info:
+          type: string
+          nullable: true
+          example: null
