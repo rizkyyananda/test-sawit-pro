@@ -11,6 +11,7 @@ import (
 	"test_sawit_pro/config"
 	"test_sawit_pro/depedency-injection"
 	"test_sawit_pro/router"
+	"time"
 )
 
 func main() {
@@ -39,6 +40,15 @@ func main() {
 	e.Debug = isDebug
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+
+	e.GET("/health", func(c echo.Context) error {
+		status := map[string]interface{}{
+			"status":  "UP",
+			"service": "Sawit pro service is running",
+			"time":    time.Now().Format(time.RFC3339),
+		}
+		return c.JSON(http.StatusOK, status)
+	})
 
 	// ========== Tambahan untuk Dokumentasi ==========
 	e.File("/openapi.yaml", "api.yaml")
